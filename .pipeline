@@ -1,0 +1,27 @@
+node{
+    def bd= BUILD_NUMBER
+    stage("Codecheckout"){
+        git credentialsId: 'GitHubCred', url: 'https://github.com/krishna57474/nodejs-app.git'
+    }
+    
+    stage("BuildDockerImage"){
+        sh "docker build -t krishna1011/nodejs:${bd} ."
+    }
+    
+    stage("docker login and pushing the image"){
+         sh "docker login -u krishna1011 -p dckr_pat_Qc_pdXU7o32f70ACkx-xahIsFec"
+         
+    
+        sh "docker push krishna1011/nodejs:${bd}"
+    }
+    
+     stage("DeployingContainer") 
+    {
+      sshagent(['6fe7d7e9-9a00-4da6-8227-c1f4e659d222'])
+      {
+      sh "ssh -o StrictHostKeyChecking=no ubuntu@3.109.214.208 docker rm -f nodejscontainer||true"
+      sh "ssh -o StrictHostKeyChecking=no ubuntu@172.31.38.160 docker run -d --name nodejscontainer -p 9981:8080 krishna1011/nodejs:${bd}"
+      }
+            
+    }
+}
